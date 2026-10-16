@@ -1,5 +1,9 @@
 # M16 — TODO · Counselor, Study Plan & Readiness Forecast
 
+> **Completion: 0%** — 0 of 19 functional requirements met. **No repository.** The spec is written and, for several modules, reviewed; nothing is built. The requirement count is the spec's own, so this is a measure of scope ahead rather than of progress behind.
+>
+> _Method: `(met + ½ × partial) ÷ total`, counted from the spec, 2026-08-28. One measure applied the same way to all nineteen modules so they compare; it counts requirements, not screens or gates._
+
 Task list for taking **M16 — Counselor, Study Plan & Readiness Forecast** to 100% of [M16_Counselor.md](M16_Counselor.md).
 
 > **This is the branch that holds the plan.** The `todo` branch carries the
