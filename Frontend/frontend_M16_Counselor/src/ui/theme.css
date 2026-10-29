@@ -1,0 +1,22 @@
+/*
+  CRITICAL — do not split this import out.
+
+  Tailwind v4 generates utilities from `@theme` only for files inside the entry
+  that imports Tailwind. So the chain lives here: core first, this on top.
+  Inside Platform_Shell this file is not imported; the shell's theme scans
+  this module's source instead.
+*/
+@import "@ai/core/styles.css";
+
+/*
+  M16 — Counselor · design layer, on top of @ai/core's tokens.
+
+  A talk is watched, like a short video: one face, large, with the words
+  under it. Colour and dark mode come from core unchanged.
+*/
+
+@layer base {
+  body {
+    font-size: 0.9375rem;
+  }
+}

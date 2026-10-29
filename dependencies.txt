@@ -1,0 +1,45 @@
+===============================================================================
+  M16 — COUNSELOR · DEPENDENCIES
+  Repo: https://github.com/MNEMOS-PREP/Counselor
+  Spec: plan_in_depth/M16_Counselor.md
+  Last updated: 2026-10-29
+===============================================================================
+
+This repo holds ONE module. It clones, installs and runs on its own.
+The machine-readable version of this file is `module.json`. The backend reads
+it for /v1/deps; if you edit one, edit both.
+
+
+WHAT THIS MODULE NEEDS (upstream)
+-------------------------------------------------------------------------------
+Nothing is required to START. A talk needs something to talk about, though.
+
+  MODULE  WHAT WE USE IT FOR                   IF MISSING
+  ------  ----------------------------------   ----------------------------------
+  M06     the interviews a talk covers: the    No talk is made ("M06 is not
+          student's history and each           answering"); one is owed and made
+          interview's report                   when M06 is back.
+
+  M04     the profile (name, weekly goal,      The talk is about the interview
+          drives), mastery and trajectory      alone: no goal, drive or trend.
+
+  M11     the counselor's face and voice, in   The browser's voice, or the talk
+          the browser (@ai/core)               as text. The words are the same.
+
+Every call to M06 and M04 forwards the student's identity, so those modules
+apply their own rule about what M16 may read.
+
+
+WHO USES THIS MODULE (downstream)
+-------------------------------------------------------------------------------
+  Platform_Shell   mounts `m16Routes` (/counsel), and shows `CounselNudge` on
+                   Today and over the notes once an interview has ended.
+
+
+THE FACES
+-------------------------------------------------------------------------------
+The four counselors' heads are made by M11's scripts/make_faces.py from the
+entries in its scripts/faces/portraits.json (counsel_kabir, counsel_tara,
+counsel_sunita, counsel_prakash), and their voices are cast in M11's
+voices/cast.json. All four are AI-generated and labelled so; none is a real
+person. M11's tests read counselors.json here to hold the cast to it.

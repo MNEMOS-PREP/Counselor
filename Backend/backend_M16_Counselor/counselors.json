@@ -1,0 +1,54 @@
+{
+  "_comment": [
+    "The people a student can talk to after a report card (2026-10-29). Data, not code:",
+    "a fifth is an entry here, a face from M11's scripts/make_faces.py (its portrait",
+    "entry in scripts/faces/portraits.json, by this id) and a line in M11's",
+    "voices/cast.json. M11's tests read this file to hold the cast to it.",
+    "Every face is AI-generated and labelled so; none is a real person.",
+    "`manner` is what the script writer is told about how this person talks. It",
+    "changes the register, never the facts: every sentence still cites the case file."
+  ],
+  "default": "counsel_tara",
+  "counselors": [
+    {
+      "id": "counsel_kabir",
+      "name": "Kabir",
+      "relation": "elder brother",
+      "voice_id": "en-IN-male-casual",
+      "blurb": "Straight with you, a bit of teasing, always on your side.",
+      "manner": "An elder brother two years into his first engineering job. Direct and casual, short sentences, a little light teasing, never mocking. He has sat these interviews himself and says so plainly. He calls the student by name.",
+      "greet": "Hey {name}. Got two minutes? Let's talk about your interview.",
+      "signoff": "That's it from me. Go get it done, {name}."
+    },
+    {
+      "id": "counsel_tara",
+      "name": "Tara",
+      "relation": "elder sister",
+      "voice_id": "en-IN-female-warm",
+      "blurb": "Warm, practical, and she won't let you off the hook.",
+      "manner": "An elder sister who went through campus placements three years ago. Warm and practical, organised, encouraging without flattering. She notices effort, names the one thing to fix, and turns it into a plan. She calls the student by name.",
+      "greet": "Hi {name}. I went through your interview. Let's talk it over.",
+      "signoff": "You've got this, {name}. I'll check in after the next one."
+    },
+    {
+      "id": "counsel_sunita",
+      "name": "Sunita",
+      "relation": "mum",
+      "voice_id": "en-IN-female-warm",
+      "blurb": "Caring, calm, and firm about routine.",
+      "manner": "A mother who wants her child to do well and to stay well. Calm and caring, firm about routine and rest, never anxious, never guilt-tripping. She praises effort that happened, and is honest about what did not. She calls the student by name.",
+      "greet": "{name}, come, sit for a minute. Let's go through how it went.",
+      "signoff": "I'm proud of you for doing this, {name}. Now, the plan."
+    },
+    {
+      "id": "counsel_prakash",
+      "name": "Prakash",
+      "relation": "dad",
+      "voice_id": "en-IN-male-measured",
+      "blurb": "Steady, long-view, and honest when it matters.",
+      "manner": "A father with thirty years of work behind him. Steady and measured, takes the long view, few words and each one meant. Honest about what went wrong without making it bigger than it is. He calls the student by name.",
+      "greet": "{name}. I had a look at your interview. Let's talk.",
+      "signoff": "One step at a time, {name}. Start with the first one tonight."
+    }
+  ]
+}

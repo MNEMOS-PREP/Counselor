@@ -1,0 +1,63 @@
+{
+  "module": "M16",
+  "name": "Counselor",
+  "spec": "plan_in_depth/M16_Counselor.md",
+  "repo": "https://github.com/MNEMOS-PREP/Counselor",
+  "owner": "E3",
+  "phase": "4",
+  "ports": {
+    "backend": 8116,
+    "frontend": 5216
+  },
+  "core": {
+    "repo": "https://github.com/MNEMOS-PREP/Platform_Core",
+    "version": "v0.42.0"
+  },
+
+  "_comment_depends_on": [
+    "M16 talks a student through their report card, so it reads the report (M06)",
+    "and what the platform knows about them (M04). It needs M06 to have anything",
+    "to say; without M04 it still talks, without the goal, the drive or the trend.",
+    "M11 gives the counselor a face and a voice, in the browser; without it the",
+    "episode is read in the browser's voice, or as text.",
+    "Override any base_url without editing this file: M06_BASE_URL=http://..."
+  ],
+  "depends_on": [
+    {
+      "module": "M06",
+      "name": "Mock Interview Engine",
+      "repo": "https://github.com/MNEMOS-PREP/Mock_Interview_Engine",
+      "reason": "the interviews a talk covers: each one's report, and the student's history of interviews",
+      "on_missing": "Your counselor needs your interview reports to talk them through. It will catch up when the interview engine is back.",
+      "base_url": "http://127.0.0.1:8106",
+      "health_path": "/health",
+      "required": false
+    },
+    {
+      "module": "M04",
+      "name": "Skill Graph & MNEMOS Memory",
+      "repo": "https://github.com/MNEMOS-PREP/Memory",
+      "reason": "your name, weekly goal and drive dates (profile), and which topics are moving (mastery, trajectory)",
+      "on_missing": "Your counselor talks about the interview alone - without your goal, your next drive or what has moved over time.",
+      "base_url": "http://127.0.0.1:8104",
+      "health_path": "/health",
+      "required": false
+    },
+    {
+      "module": "M11",
+      "name": "Voice & Conversation Engine",
+      "repo": "https://github.com/MNEMOS-PREP/Voice_Engine",
+      "reason": "the counselor's face and voice, made in the browser through @ai/core",
+      "on_missing": "Your counselor speaks in your browser's voice, or you can read the talk instead.",
+      "base_url": "http://127.0.0.1:8111",
+      "health_path": "/health",
+      "required": false
+    }
+  ],
+
+  "_comment_feeds": [
+    "Nothing reads M16 yet. Platform_Shell mounts its screens under /counsel and",
+    "shows Today's 'has something to tell you' card from GET /v1/counsel/..."
+  ],
+  "feeds": []
+}

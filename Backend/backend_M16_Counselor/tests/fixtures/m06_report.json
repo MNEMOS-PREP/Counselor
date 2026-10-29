@@ -1,0 +1,527 @@
+{
+ "session_id": "e161c75e-2e8c-4505-8e3c-fa2ea4af780a",
+ "kind": "mock",
+ "mode": "practice",
+ "status": "ended",
+ "end_reason": "plan_complete",
+ "started_at": "2026-10-29T13:16:47.254200Z",
+ "ended_at": "2026-10-29T13:35:55.412431Z",
+ "minutes_used": 19.1,
+ "minutes_planned": 15,
+ "framing": "Here's how each question went.",
+ "questions": [
+  {
+   "question": "Tell me about a time you had to solve a technical problem while thinking aloud with a teammate; what was your approach and how did you keep the conversation productive?",
+   "source": "m05_draft",
+   "scored": false,
+   "not_scored_reason": "A newly written practice question nobody has reviewed yet, so it is not scored — the notes show what a strong answer covers.",
+   "scoring_status": "not_scored",
+   "exchanges": [
+    {
+     "role": "interviewer",
+     "text": "Hi, I'm Ananya — thanks for making the time. I'm joined by Meera, and we'll keep this conversational. Hi! I'll be sitting in, and I might jump in with a question or two. Let's start with something easy. Tell me about a time you had to solve a technical problem while thinking aloud with a teammate; what was your approach and how did you keep the conversation productive?",
+     "move": null,
+     "depth": 0,
+     "turn_id": null,
+     "retry": false
+    },
+    {
+     "role": "candidate",
+     "text": "In my third-year project we were building a REST API for a hostel complaint system and the complaints endpoint started timing out under load. My teammate and I debugged it over a call. I said out loud what I was checking at each step: first the logs, then the query, and we found it was doing a full table scan because there was no index on the status column. I kept it productive by writing down each hypothesis in a shared doc and agreeing on the next check before running it, so we never argued in circles. Adding the index brought the response time from about 4 seconds to under 100 milliseconds.",
+     "move": null,
+     "depth": 0,
+     "turn_id": "ad27baf8-340f-5069-9f9b-91b1bc6b1818",
+     "retry": false
+    },
+    {
+     "role": "interviewer",
+     "text": "Can I jump in with one? Why does adding an index on the status column eliminate the full table scan and reduce the response time so dramatically?",
+     "move": "rung",
+     "depth": 1,
+     "turn_id": null,
+     "retry": false
+    },
+    {
+     "role": "candidate",
+     "text": "Without an index the database has no way to find rows with a given status except checking every row, so the query is O(n) in the table size. A B-tree index on status keeps the keys sorted with pointers to the rows, so the lookup becomes a tree descent, O(log n), and then it reads only the matching rows. Our table had a few hundred thousand complaints and only a small fraction were open, so we went from reading everything to reading a tiny slice. The trade-off is that every insert and update now also has to update the index, and an index on a low-cardinality column helps only if the value you filter on is selective.",
+     "move": null,
+     "depth": 0,
+     "turn_id": "a8a19ffb-89d9-5c59-8464-5208be450041",
+     "retry": false
+    }
+   ],
+   "depth_reached": 1,
+   "break_depth": null,
+   "ceiling": null,
+   "hints_used": 0,
+   "strong_answer_covers": [
+    "Describes a concrete problem, context, and the team member involved.",
+    "Explains how they narrated each reasoning step and paused for feedback.",
+    "Shows they used active listening (e.g., paraphrasing, confirming) to keep the dialogue on track.",
+    "Mentions the outcome (e.g., bug fixed, feature delivered) and any measurable impact."
+   ],
+   "asked_by": "Ananya, Software Engineer",
+   "retried": false,
+   "moved_on": false,
+   "skipped": null,
+   "feedback": [],
+   "concept_id": "concept:thinking_aloud",
+   "topic": "",
+   "turn_id": "ad27baf8-340f-5069-9f9b-91b1bc6b1818",
+   "went_well": [
+    "described concrete problem and teammate",
+    "measured performance improvement",
+    "index eliminates full table scan",
+    "reduces time by selective lookup"
+   ],
+   "went_wrong": [],
+   "unsupported": [],
+   "contradictions": [],
+   "corrected": null,
+   "outcome": "held",
+   "outcome_words": "Answered well",
+   "misconception": null,
+   "how_it_went": [
+    "held: one level deeper, mechanism",
+    "held, and nothing deeper worth asking on this question"
+   ],
+   "one_strong_answer": "In my internship I was debugging a memory leak in a microservice while paired with a senior engineer. I started by stating the symptom, then walked through the code path I was inspecting, vocalising each hypothesis—\"maybe the connection pool isn’t closed\"—and asked, \"Does that align with what you saw in the logs?\" He confirmed and added his observation about a recent config change. I paused after each step to let him interject, and when he suggested an alternative, I paraphrased his point to show I was listening. Together we identified an unclosed file handle, fixed it, and the service’s memory usage dropped by 30 %. The whole session lasted 20 minutes and demonstrated how thinking aloud, combined with active listening, keeps problem-solving efficient.",
+   "strong_answer_reviewed": false,
+   "study": [],
+   "last_time": null,
+   "question_key": "q:94ca1d26-1590-5022-b7b2-9eb1cfd67f6e",
+   "starred": false,
+   "flagged": false,
+   "claim_check": null,
+   "status": "correct",
+   "status_label": "Correct",
+   "status_detail": "What you said held up to the follow-ups.",
+   "status_qualifier": null,
+   "key_points": [
+    {
+     "statement": "Describes a concrete problem, context, and the team member involved.",
+     "covered": true
+    },
+    {
+     "statement": "Explains how they narrated each reasoning step and paused for feedback.",
+     "covered": true
+    },
+    {
+     "statement": "Shows they used active listening (e.g., paraphrasing, confirming) to keep the dialogue on track.",
+     "covered": true
+    },
+    {
+     "statement": "Mentions the outcome (e.g., bug fixed, feature delivered) and any measurable impact.",
+     "covered": true
+    }
+   ],
+   "writeup": {
+    "headline": "Your answer fully satisfied all required points by describing the problem, your thinking‑aloud process, active listening, and measurable outcome.",
+    "strengths": [
+     {
+      "point": "Describes a concrete problem, context, and the team member involved",
+      "evidence": "In my third-year project we were building a REST API for a hostel complaint system and the complaints endpoint started timing out under load. My teammate and I debugged it over a call.",
+      "fix": ""
+     },
+     {
+      "point": "Explains how they narrated each reasoning step and paused for feedback",
+      "evidence": "I said out loud what I was checking at each step: first the logs, then the query, and we found it was doing a full table scan because there was no index on the status column.",
+      "fix": ""
+     },
+     {
+      "point": "Shows they used active listening (e.g., paraphrasing, confirming) to keep the dialogue on track",
+      "evidence": "I kept it productive by writing down each hypothesis in a shared doc and agreeing on the next check before running it, so we never argued in circles.",
+      "fix": ""
+     },
+     {
+      "point": "Mentions the outcome and measurable impact",
+      "evidence": "Adding the index brought the response time from about 4 seconds to under 100 milliseconds.",
+      "fix": ""
+     }
+    ],
+    "gaps": [],
+    "misconception": "",
+    "correction": "",
+    "model_answer": "In a recent project I noticed a REST endpoint timing out under load, so I walked my teammate through the debugging steps aloud—checking logs, inspecting the query, and hypothesising why it was slow. I wrote each hypothesis in a shared document, asked for his input, and paraphrased his suggestions to ensure we were aligned. We discovered a missing index on the status column, added it, and reduced the response time from several seconds to under 100 ms, demonstrating a productive, collaborative problem‑solving session.",
+    "next_steps": [],
+    "model": "openai/gpt-oss-120b"
+   }
+  },
+  {
+   "question": "Why is average-case lookup in a hash map O(1), and what has to be true for that to hold?",
+   "source": "m05_bank",
+   "scored": true,
+   "not_scored_reason": null,
+   "scoring_status": "complete",
+   "exchanges": [
+    {
+     "role": "interviewer",
+     "text": "Thanks, Meera. Nicely put. Alright — let's switch gears. Next up: Data structures and algorithms. Why is average-case lookup in a hash map O(1), and what has to be true for that to hold?",
+     "move": null,
+     "depth": 0,
+     "turn_id": null,
+     "retry": false
+    },
+    {
+     "role": "candidate",
+     "text": "Because the hash function gives you the index directly, so you just go to that slot in the array and get the value. That is why it is constant time.",
+     "move": null,
+     "depth": 0,
+     "turn_id": "a0a520a9-0bd4-55b7-b420-c51766f9984a",
+     "retry": false
+    },
+    {
+     "role": "interviewer",
+     "text": "What assumptions about the hash function’s distribution and the table’s load factor are necessary to keep collisions rare enough that the expected lookup remains constant time?",
+     "move": "rung",
+     "depth": 1,
+     "turn_id": null,
+     "retry": false
+    },
+    {
+     "role": "candidate",
+     "text": "Honestly I'm not sure about the assumptions. I think it just needs a good hash function?",
+     "move": null,
+     "depth": 0,
+     "turn_id": "57d91285-f245-52b8-add9-b8222c4bfe90",
+     "retry": false
+    },
+    {
+     "role": "interviewer",
+     "text": "Can you describe more precisely what “good” means for the hash function and how the load factor should be bounded to keep expected collisions low?",
+     "move": "challenge",
+     "depth": 1,
+     "turn_id": null,
+     "retry": false
+    },
+    {
+     "role": "candidate",
+     "text": "I don't know how the load factor should be bounded.",
+     "move": null,
+     "depth": 0,
+     "turn_id": "8b5d9ea0-a549-5859-9d80-ec72da621a0a",
+     "retry": false
+    }
+   ],
+   "depth_reached": 1,
+   "break_depth": 1,
+   "ceiling": null,
+   "hints_used": 0,
+   "strong_answer_covers": [
+    "States that the key is hashed to a bucket index rather than scanned for.",
+    "Names uniform distribution or a bounded load factor as a condition.",
+    "Says the worst case degrades to O(n) when keys collide heavily."
+   ],
+   "asked_by": "Ananya, Software Engineer",
+   "retried": false,
+   "moved_on": false,
+   "skipped": null,
+   "feedback": [
+    {
+     "dimension": "communication",
+     "reasoning": "The explanation is presented in a clear, linear order, though the candidate admits uncertainty about assumptions, which does not hinder understanding.",
+     "missing": [
+      "kp_2",
+      "kp_3"
+     ],
+     "quotes": [
+      "Because the hash function gives you the index directly"
+     ]
+    },
+    {
+     "dimension": "correctness",
+     "reasoning": "The candidate correctly notes that hashing gives a direct index, which explains O(1) lookup, but does not mention the required uniform distribution or load‑factor bound, so the answer is incomplete.",
+     "missing": [
+      "kp_2",
+      "kp_3"
+     ],
+     "quotes": [
+      "Because the hash function gives you the index directly"
+     ]
+    },
+    {
+     "dimension": "depth",
+     "reasoning": "The answer explains the mechanism (direct index) but misses important limitations such as load factor and worst‑case collisions.",
+     "missing": [
+      "kp_2",
+      "kp_3"
+     ],
+     "quotes": [
+      "Because the hash function gives you the index directly"
+     ]
+    }
+   ],
+   "concept_id": "concept:hashing",
+   "topic": "",
+   "turn_id": "a0a520a9-0bd4-55b7-b420-c51766f9984a",
+   "went_well": [
+    "hash function gives index directly"
+   ],
+   "went_wrong": [
+    {
+     "said": "Honestly I'm not sure about the assumptions.",
+     "why": "Did not state required assumptions about hash distribution or load factor."
+    }
+   ],
+   "unsupported": [],
+   "contradictions": [],
+   "corrected": null,
+   "outcome": "gap:advanced",
+   "outcome_words": "The basics held; the deeper part did not",
+   "misconception": "Missing assumptions",
+   "how_it_went": [
+    "held: one level deeper, mechanism",
+    "a slip in the answer, pointed at once so they can reconsider",
+    "does not know it, after a simpler question"
+   ],
+   "one_strong_answer": "The key is hashed to a bucket index, so you go straight to a slot instead of scanning. That holds when the hash function distributes keys roughly uniformly and the load factor stays bounded — usually by resizing and rehashing once it passes a threshold. If either fails, keys pile into a few buckets and lookup degrades toward O(n) in the worst case.",
+   "strong_answer_reviewed": true,
+   "study": [
+    "Revisit the idea behind this: Missing assumptions."
+   ],
+   "last_time": null,
+   "question_key": "q:5a828ad6-284e-5930-8864-d40f7cfebbc5",
+   "starred": false,
+   "flagged": true,
+   "claim_check": null,
+   "status": "incorrect",
+   "status_label": "Incorrect in a follow-up",
+   "status_detail": "Your first answer held up, but a follow-up did not. A misunderstanding that stood: Missing assumptions.",
+   "status_qualifier": null,
+   "key_points": [
+    {
+     "statement": "States that the key is hashed to a bucket index rather than scanned for.",
+     "covered": true
+    },
+    {
+     "statement": "Names uniform distribution or a bounded load factor as a condition.",
+     "covered": true
+    },
+    {
+     "statement": "Says the worst case degrades to O(n) when keys collide heavily.",
+     "covered": true
+    }
+   ],
+   "writeup": {
+    "headline": "You correctly identified that hashing gives direct indexing, but you omitted the essential assumptions about distribution and load factor.",
+    "strengths": [
+     {
+      "point": "Identified direct indexing via hash function",
+      "evidence": "Because the hash function gives you the index directly, so you just go to that slot in the array and get the value.",
+      "fix": ""
+     }
+    ],
+    "gaps": [
+     {
+      "point": "Did not state the required uniform distribution assumption",
+      "evidence": "Honestly I'm not sure about the assumptions.",
+      "fix": "Explain that the hash function must distribute keys roughly uniformly across buckets."
+     },
+     {
+      "point": "Did not specify the load‑factor bound needed to keep collisions rare",
+      "evidence": "I don't know how the load factor should be bounded.",
+      "fix": "State that the table’s load factor should stay below a constant threshold (e.g., ≤ 0.75) and that the table is resized/rehashed when it exceeds that threshold."
+     }
+    ],
+    "misconception": "Missing assumptions about hash distribution and load factor",
+    "correction": "For average‑case O(1) lookup, the hash function must produce a near‑uniform distribution of keys and the hash table must maintain a bounded load factor (typically by resizing when the number of entries exceeds a constant fraction of the bucket array). Without these, collisions become frequent and lookup degrades toward O(n).",
+    "model_answer": "A hash map achieves average‑case O(1) lookup because the hash function maps a key directly to a bucket index, so you can access the bucket without scanning. This holds only if the hash function distributes keys uniformly (or close to it) and the table’s load factor remains bounded—usually by resizing when it exceeds a constant threshold such as 0.75. If either condition fails, many keys collide and lookup can approach O(n).",
+    "next_steps": [
+     "Review the definition of uniform (or near‑uniform) hash distribution and why it limits expected collisions.",
+     "Study load factor concepts, typical thresholds (e.g., 0.7‑0.75), and how resizing/re‑hashing maintains them.",
+     "Practice explaining how both uniform hashing and bounded load factor together guarantee expected constant‑time lookup."
+    ],
+    "model": "openai/gpt-oss-120b"
+   }
+  },
+  {
+   "question": "What does it mean for a sort to be stable?",
+   "source": "m05_bank",
+   "scored": true,
+   "not_scored_reason": null,
+   "scoring_status": "complete",
+   "exchanges": [
+    {
+     "role": "interviewer",
+     "text": "We've got about 1 minutes left — no rush. Okay, here's the next one. What does it mean for a sort to be stable?",
+     "move": null,
+     "depth": 0,
+     "turn_id": null,
+     "retry": false
+    },
+    {
+     "role": "candidate",
+     "text": "A sort is stable if records with equal keys keep the same relative order they had in the input. For example, if I sort students by marks and two students both have 85, a stable sort keeps whoever came first in the original list first. It matters when you sort by multiple keys in passes: sort by name first, then stably by marks, and students with equal marks stay alphabetical. Merge sort and insertion sort are stable; quicksort and heapsort in their usual forms are not.",
+     "move": null,
+     "depth": 0,
+     "turn_id": "aa92947a-269e-514b-b9b8-0d2be4698287",
+     "retry": false
+    },
+    {
+     "role": "interviewer",
+     "text": "Can I jump in with one? What is actually happening underneath that makes it work?",
+     "move": "rung",
+     "depth": 1,
+     "turn_id": null,
+     "retry": false
+    },
+    {
+     "role": "candidate",
+     "text": "Underneath, a stable sort never swaps two equal elements past each other. Merge sort, for example, takes from the left half when keys are equal, so earlier elements stay first. Quicksort's partition can move an equal element across the pivot, which is why it loses the order.",
+     "move": null,
+     "depth": 0,
+     "turn_id": "1b4e0fad-bacf-53fd-abbd-d76456b71cb0",
+     "retry": false
+    }
+   ],
+   "depth_reached": 1,
+   "break_depth": null,
+   "ceiling": null,
+   "hints_used": 0,
+   "strong_answer_covers": [
+    "Defines stability as preserving the order of equal elements.",
+    "Gives a case where it matters, such as multi-key sorting."
+   ],
+   "asked_by": "Ananya, Software Engineer",
+   "retried": false,
+   "moved_on": false,
+   "skipped": null,
+   "feedback": [
+    {
+     "dimension": "communication",
+     "reasoning": "The explanation is well‑structured, uses clear examples, and defines terms before using them, making it easy to follow.",
+     "missing": [],
+     "quotes": [
+      "It matters when you sort by multiple keys in passes: sort by name first, then stably by marks, and students with equal marks stay alphabetical."
+     ]
+    },
+    {
+     "dimension": "correctness",
+     "reasoning": "The candidate gives a correct definition of stability and explains the scenario where it matters, matching the required key point.",
+     "missing": [],
+     "quotes": [
+      "A sort is stable if records with equal keys keep the same relative order they had in the input."
+     ]
+    },
+    {
+     "dimension": "depth",
+     "reasoning": "The candidate explains the mechanism (how merge sort preserves order and why quicksort does not), showing deep understanding.",
+     "missing": [],
+     "quotes": [
+      "Merge sort, for example, takes from the left half when keys are equal, so earlier elements stay first."
+     ]
+    }
+   ],
+   "concept_id": "concept:sorting",
+   "topic": "",
+   "turn_id": "aa92947a-269e-514b-b9b8-0d2be4698287",
+   "went_well": [
+    "Defines stability as preserving order of equal elements",
+    "Mentions multi-key sorting example",
+    "Preserves order of equal elements",
+    "Merge sort takes from left half when equal"
+   ],
+   "went_wrong": [],
+   "unsupported": [],
+   "contradictions": [],
+   "corrected": null,
+   "outcome": "held",
+   "outcome_words": "Answered well",
+   "misconception": null,
+   "how_it_went": [
+    "held: one level deeper, mechanism",
+    "held, and nothing deeper worth asking on this question"
+   ],
+   "one_strong_answer": "A stable sort preserves the relative order of records that compare equal. It matters when you sort by more than one key in passes — sort by name, then by department, and stability is what keeps names ordered inside each department.",
+   "strong_answer_reviewed": true,
+   "study": [],
+   "last_time": null,
+   "question_key": "q:2d124cee-6b78-5be9-9133-bbe653c15f14",
+   "starred": false,
+   "flagged": false,
+   "claim_check": null,
+   "status": "correct",
+   "status_label": "Correct",
+   "status_detail": "What you said held up to the follow-ups.",
+   "status_qualifier": null,
+   "key_points": [
+    {
+     "statement": "Defines stability as preserving the order of equal elements.",
+     "covered": true
+    },
+    {
+     "statement": "Gives a case where it matters, such as multi-key sorting.",
+     "covered": true
+    }
+   ],
+   "writeup": {
+    "headline": "You correctly defined stability and gave a relevant multi‑key sorting example.",
+    "strengths": [
+     {
+      "point": "Defines stability as preserving the order of equal elements",
+      "evidence": "A sort is stable if records with equal keys keep the same relative order they had in the input.",
+      "fix": ""
+     },
+     {
+      "point": "Gives a case where it matters, such as multi‑key sorting",
+      "evidence": "It matters when you sort by multiple keys in passes: sort by name first, then stably by marks, and students with equal marks stay alphabetical.",
+      "fix": ""
+     },
+     {
+      "point": "Explains why merge sort is stable",
+      "evidence": "Merge sort, for example, takes from the left half when keys are equal, so earlier elements stay first.",
+      "fix": ""
+     },
+     {
+      "point": "Explains why quicksort is not stable",
+      "evidence": "Quicksort's partition can move an equal element across the pivot, which is why it loses the order.",
+      "fix": ""
+     }
+    ],
+    "gaps": [],
+    "misconception": "",
+    "correction": "",
+    "model_answer": "A stable sort preserves the relative order of elements that compare equal. This matters when you perform multiple passes of sorting, e.g., sorting by name then by department, because stability keeps the name order within each department. Merge sort and insertion sort are stable by design, while quicksort and heapsort are not unless specially modified.",
+    "next_steps": [],
+    "model": "openai/gpt-oss-120b"
+   }
+  }
+ ],
+ "your_questions": [
+  "Yes, what does the first month usually look like for a new engineer joining your team?"
+ ],
+ "plan_changes": [],
+ "notes": [
+  "Each answer's status is the interview's judgement of the whole conversation on it. Numerical scores appear once they are calibrated against human raters.",
+  "Your questions for the interviewer are in these notes but not scored — there is no rubric for a question yet, and the real panel is who can answer them."
+ ],
+ "summary": {
+  "held": [
+   "thinking aloud",
+   "sorting"
+  ],
+  "gaps": [
+   "hashing: the basics held; the deeper part did not — Missing assumptions"
+  ],
+  "corrected": [],
+  "repeated_misconceptions": [],
+  "unsupported_claims": [],
+  "topics": [
+   "thinking aloud: going well: a harder follow-up next",
+   "hashing: not going well: back to the core idea",
+   "sorting: going well: a harder follow-up next"
+  ],
+  "communication": [
+   "Fillers were not a problem: a few, as in any natural answer."
+  ],
+  "status_counts": {
+   "correct": 2,
+   "incorrect": 1
+  },
+  "focus": [
+   "hashing — incorrect in a follow-up"
+  ]
+ },
+ "writeups": "ready",
+ "persona_note": "The interviewer's manner never changes the standard: a friendly interviewer and a bar-raiser judge the same answer against the same rubric. Practice checks each answer once rather than three times, so it is less precise — not more generous."
+}

@@ -1,0 +1,26 @@
+===============================================================================
+  M16 — COUNSELOR · CREDENTIALS
+===============================================================================
+
+Copy the lines you need into keys.txt (never committed) — here, in Backend/,
+or in the folder beside the repositories, which every module reads.
+
+Nothing here is needed to start. Talks are made either way.
+
+-------------------------------------------------------------------------------
+GROQ_API_KEYS="your-groq-key"
+-------------------------------------------------------------------------------
+  What it buys you: the counselor's words. One call per talk (one after every
+  1, 2 or 3 interviews, the student's choice), written in the chosen person's
+  manner from facts the code decided — every line cites them, and a line that
+  does not is cut.
+
+  Without it: talks still run, in plain words written by rule from the same
+  facts, with the counselor's own greeting and sign-off. The facts, the plan
+  and the ask are identical either way.
+
+  One key. Groq's free tier is 8K tokens a minute and 200K a day per model;
+  do not pool keys from different organisations (Groq's terms forbid it).
+
+  Optional: M16_MODEL_SCRIPT moves the job to another model (any id
+  `ai_core.models` knows), without moving the rest of the platform.
