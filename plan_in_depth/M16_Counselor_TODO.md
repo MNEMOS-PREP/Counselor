@@ -1,6 +1,6 @@
 # M16 — TODO · Counselor, Study Plan & Readiness Forecast
 
-> **Completion: 0%** — 0 of 19 functional requirements met. **No repository.** The spec is written and, for several modules, reviewed; nothing is built. The requirement count is the spec's own, so this is a measure of scope ahead rather than of progress behind.
+> **Completion: 29%** — 3 of 19 functional requirements met, 5 partly (2026-10-30). Built: the counselor's talk after an interview — an episode with a 3D face and its own voice, every line held to facts computed from the reports, a plan of at most three steps, and one commitment asked for. Not built: plateau and bottleneck detection, the study plan proper, spaced repetition, the readiness forecast.
 >
 > _Method: `(met + ½ × partial) ÷ total`, counted from the spec, 2026-08-28. One measure applied the same way to all nineteen modules so they compare; it counts requirements, not screens or gates._
 
@@ -39,14 +39,17 @@ _Nothing scouted for this module yet._
 
 | | |
 |---|---|
-| Status | **Not started.** No code exists — no backend, no frontend, no tests. |
+| Status | **The talk is built** (2026-10-29/30): FastAPI on :8116 (noun `counsel`), 24 tests; the React episode player, picker, settings and the Today card; in the shell at /counsel. |
 | Spec | Written, and the source of every row below. |
 | Scope | 19 functional requirements (14 of them P0), 12 acceptance metrics (4 release-blocking), 15 edge cases. |
 
-Everything below is ⬜ because nothing is built. That is the honest state and
-it is worth writing down rather than leaving three sections saying
-_To fill in._ — the point of this list is that the next session can start from
-it instead of re-reading a six-hundred-line spec.
+What exists is the talk: `casefile.py` turns M06's reports and M04's profile,
+mastery and trajectory into numbered facts; `plan.py` picks at most three steps
+and one ask sized to the student's own weekly goal; `script.py` has the model
+write seven chapters in the counselor's manner and cuts any line that cites no
+fact, says a number its facts do not, praises without content, is cruel, or
+promises an outcome. A talk comes after every 1, 2 or 3 interviews, the
+student's choice. Everything else below is still ⬜.
 
 ---
 
@@ -56,21 +59,21 @@ Spec §4, verbatim. This is the authoritative list.
 
 | FR | | Priority |
 |---|---|---|
-| FR-16.1 | ⬜ Compute diagnosis deterministically; model only phrases it | P0 |
-| FR-16.2 | ⬜ Every claim carries an evidence reference (session, turn, quote) | P0 |
-| FR-16.3 | ⬜ At most 3 actions; exactly 1 primary | P0 |
-| FR-16.4 | ⬜ Always include a "what's working" element | P0 |
+| FR-16.1 | ✅ Compute diagnosis deterministically; model only phrases it | P0 |
+| FR-16.2 | 🟡 Every claim carries an evidence reference (session, turn, quote) — every line cites fact ids, and facts carry the student's words; no turn id yet | P0 |
+| FR-16.3 | 🟡 At most 3 actions; exactly 1 primary — at most 3 steps, the gap first; not marked primary | P0 |
+| FR-16.4 | ✅ Always include a "what's working" element | P0 |
 | FR-16.5 | ⬜ Plateau and regression detection with minimum-evidence gates | P0 |
 | FR-16.6 | ⬜ Prerequisite bottleneck identification with a foundational floor | P0 |
 | FR-16.7 | ⬜ Cross-modal diagnosis: knowledge vs articulation vs composure | P0 |
-| FR-16.8 | ⬜ Adherence tracking; unmet commitments named without judgement | P0 |
-| FR-16.9 | ⬜ Study plan backward-planned from drive dates | P0 |
+| FR-16.8 | 🟡 Adherence tracking; unmet commitments named without judgement — last talk's commitment, kept or not; interviews only | P0 |
+| FR-16.9 | 🟡 Study plan backward-planned from drive dates — a drive within 30 days becomes a step; no plan beyond it | P0 |
 | FR-16.10 | ⬜ Triage mode when time-to-drive is short | P0 |
 | FR-16.11 | ⬜ Spaced repetition via FSRS, injected as real interview questions | P1 |
 | FR-16.12 | ⬜ Interleaved rather than blocked practice, with an explanation | P1 |
 | FR-16.13 | ⬜ Readiness forecast as a range with a confidence band | P1 |
-| FR-16.14 | ⬜ Suppress the forecast until validated against outcomes | P0 |
-| FR-16.15 | ⬜ Weekly nudge, capped, user-controlled, silent when active | P1 |
+| FR-16.14 | ✅ Suppress the forecast until validated against outcomes — no forecast exists, and a line promising an outcome is cut | P0 |
+| FR-16.15 | 🟡 Weekly nudge, capped, user-controlled, silent when active — the Today card and a pause switch; not weekly or capped | P1 |
 | FR-16.16 | ⬜ Rejection-recovery mode with a delay before analysis | P1 |
 | FR-16.17 | ⬜ Never diagnose mental health; escalate to institute counselling | P0 |
 | FR-16.18 | ⬜ Version-scoped longitudinal comparisons | P0 |
