@@ -40,7 +40,10 @@ export interface Ask {
 export interface CounselorRef {
   id: string;
   name: string;
+  /** What they are to the student: "mentor". */
   relation: string;
+  /** Who they are, shown under their name. */
+  role: string;
   voice_id: string;
 }
 
@@ -85,4 +88,97 @@ export interface Settings {
   mode: Mode;
   paused: boolean;
   every_choices: number[];
+}
+
+// ── a walk through one interview's notes ──────────────────────────────────────
+
+/** Which part of the card a line is about, so the screen can point at it. */
+export type CardSection = "question" | "said" | "held" | "missed" | "idea" | "study";
+
+export interface WalkLine extends Line {
+  points_at: CardSection | null;
+}
+
+export interface WalkChapter {
+  /** "intro", "q2" … (the question's number in the notes), "close". */
+  key: string;
+  title: string;
+  lines: WalkLine[];
+}
+
+/** The notes' statuses (M06 report). */
+export type NoteStatus =
+  | "correct"
+  | "partial"
+  | "vague"
+  | "incorrect"
+  | "unsupported"
+  | "unanswered"
+  | "not_judged";
+
+export interface OverviewCard {
+  kind: "overview";
+  held: number;
+  work: number;
+  unjudged: number;
+  questions: {
+    key: string;
+    index: number;
+    question: string;
+    status: NoteStatus | null;
+    status_label: string;
+    topic: string;
+    /** Gone through in this walk (it needs work). */
+    walked: boolean;
+  }[];
+}
+
+export interface QuestionCard {
+  kind: "question";
+  index: number;
+  topic: string;
+  /** A question about the student's resume: the line it asked about. */
+  resume_line: string;
+  status: NoteStatus | null;
+  status_label: string;
+  question: string;
+  headline: string;
+  answer: string;
+  held: { point: string; evidence: string }[];
+  missed: { point: string; evidence: string; fix: string }[];
+  missed_title: string;
+  idea: string;
+  study: string[];
+}
+
+export interface CloseCard {
+  kind: "close";
+  focus: string;
+  points: string[];
+}
+
+export type NoteCard = OverviewCard | QuestionCard | CloseCard;
+
+export interface Walkthrough {
+  id: string;
+  candidate_id: string;
+  session_id: string;
+  status: "writing" | "ready" | "failed";
+  /** While writing: what it is on ("Question 2 (2 of 3)"). */
+  stage: string | null;
+  /** The same, as numbers, for the progress bar. */
+  progress: { at: number; of: number } | null;
+  counselor: CounselorRef;
+  created_at: string;
+  ready_at: string | null;
+  chapters: WalkChapter[];
+  cards: Record<string, NoteCard>;
+  /** Every explanation in the notes was written when this was. */
+  notes_complete: boolean;
+  reached: string | null;
+  watched_at: string | null;
+  seconds: number;
+  source: "model" | "mixed" | "template";
+  templated: string[];
+  reason: string | null;
 }

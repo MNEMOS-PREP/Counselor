@@ -10,7 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "@ai/core";
 
-import type { Check, Counselor, Episode, Settings } from "./types";
+import type { Check, Counselor, Episode, Settings, Walkthrough } from "./types";
 
 const C = "/v1/counsel";
 
@@ -20,6 +20,7 @@ export const m16Keys = {
   check: (cid: string) => ["m16", "check", cid] as const,
   episodes: (cid: string) => ["m16", "episodes", cid] as const,
   episode: (id: string) => ["m16", "episode", id] as const,
+  walk: (sessionId: string, counselorId: string) => ["m16", "walk", sessionId, counselorId] as const,
 };
 
 export function useCounselors() {
@@ -101,5 +102,30 @@ export function useAnswer(id: string) {
   return useMutation({
     mutationFn: (option: string) => api.post<Episode>(`${C}/episodes/${id}/answer`, { option }),
     onSuccess: (episode) => qc.setQueryData(m16Keys.episode(id), episode),
+  });
+}
+
+/** "Go through my notes with me": the walk through one interview's notes in
+ *  the chosen mentor's voice. The POST opens the one already made or starts
+ *  writing one (minutes: it waits for the notes, then one question at a time),
+ *  so it is polled while it says "writing". Keyed by mentor, because another
+ *  mentor's walk is another walk. */
+export function useWalkthrough(candidateId: string | null, sessionId: string | undefined, counselorId: string | undefined) {
+  return useQuery({
+    queryKey: m16Keys.walk(sessionId ?? "", counselorId ?? ""),
+    queryFn: () =>
+      api.post<Walkthrough>(`${C}/candidates/${candidateId}/walkthroughs`, { session_id: sessionId }),
+    enabled: !!candidateId && !!sessionId && !!counselorId,
+    refetchInterval: (query) => (query.state.data?.status === "writing" ? 3000 : false),
+    staleTime: Infinity,
+  });
+}
+
+export function useWalkProgress(walk: Walkthrough) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { reached: string; finished?: boolean }) =>
+      api.post<Walkthrough>(`${C}/walkthroughs/${walk.id}/progress`, body),
+    onSuccess: (saved) => qc.setQueryData(m16Keys.walk(saved.session_id, saved.counselor.id), saved),
   });
 }

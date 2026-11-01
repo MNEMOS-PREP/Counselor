@@ -186,8 +186,13 @@ def build(
         if m.get("concept_id") and m.get("name")
     }
 
-    name = (profile.get("display_name") or "").strip() or "there"
-    facts.add("name", f"The student is called {name}.", name=name)
+    # No made-up name: "there" ended a live talk "You've got this, there."
+    name = (profile.get("display_name") or "").strip()
+    facts.add(
+        "name",
+        f"The student is called {name}." if name else "The student's name is not known.",
+        name=name,
+    )
 
     if previous is None:
         facts.add("first", f"This is the first talk the student has had with {counselor_name}.")

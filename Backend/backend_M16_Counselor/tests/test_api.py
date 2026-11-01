@@ -137,5 +137,7 @@ def test_without_m06_there_is_no_talk_and_it_says_why(client):
 
 def test_the_counselors_are_four_with_one_default(client):
     people = client.get("/v1/counsel/counselors").json()
-    assert {p["relation"] for p in people} == {"elder brother", "elder sister", "mum", "dad"}
+    # Mentors, not family (the user, 2026-10-31), each with a role of their own.
+    assert {p["relation"] for p in people} == {"mentor"}
+    assert len({p["role"] for p in people}) == len(people)
     assert sum(p["default"] for p in people) == 1

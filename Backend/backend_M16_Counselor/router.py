@@ -13,10 +13,16 @@ by the first segment after /v1, and `candidates` is M04's.
     GET  /v1/counsel/episodes/{id}                     one talk
     POST /v1/counsel/episodes/{id}/progress            how far it was heard
     POST /v1/counsel/episodes/{id}/answer              the answer to the ask
+    POST /v1/counsel/candidates/{cid}/walkthroughs     go through one interview's
+                                                       notes with me (opens the one
+                                                       made, or writes one)
+    GET  /v1/counsel/walkthroughs/{id}                 one walk
+    POST /v1/counsel/walkthroughs/{id}/progress        how far it was heard
 """
 
 from __future__ import annotations
 
+import threading
 import uuid
 from datetime import timedelta
 from typing import Annotated, Literal
@@ -26,10 +32,10 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlmodel import Session, desc, select
 
-from . import config, counselors, db, episodes
+from . import config, counselors, db, episodes, walks
 from .access import enforce_access
 from .llm import get_llm
-from .models import Episode
+from .models import Episode, Walkthrough
 from .script import KEYS
 from .upstreams import Reader, Upstreams
 
@@ -77,13 +83,14 @@ def _episode(session: Session, episode_id: uuid.UUID) -> Episode:
 
 @router.get("/counselors")
 def list_counselors() -> list[dict]:
-    """The people a student can talk to — every face AI-generated, labelled so."""
+    """The mentors a student can talk to — every face AI-generated, labelled so."""
     default = counselors.default_id()
     return [
         {
             "id": c.id,
             "name": c.name,
             "relation": c.relation,
+            "role": c.role,
             "blurb": c.blurb,
             "voice_id": c.voice_id,
             "default": c.id == default,
@@ -217,3 +224,73 @@ def answer(episode_id: uuid.UUID, body: AnswerIn, session: SessionDep) -> dict:
     session.commit()
     session.refresh(episode)
     return episodes.view(episode)
+
+
+# ── a walk through the notes ─────────────────────────────────────────────────
+
+#: One writer per walk: two "go through my notes" arriving together (a double
+#: click, React's development double-effect) must not start two.
+_starting = threading.Lock()
+
+
+def _walk_later(walk_id: uuid.UUID) -> None:
+    with Session(db.engine) as session:
+        walks.write(session, get_reader(), get_llm(), walk_id)
+
+
+def _write_walk(session: Session, walk: Walkthrough, tasks: BackgroundTasks) -> None:
+    """Hand a walk to a writer when it has none: new, or its writer went quiet."""
+    if walk.status != "writing" or (walk.stage is not None and not walks.lost(walk)):
+        return
+    walk.stage, walk.beat_at = "Starting", utcnow()
+    session.add(walk)
+    session.commit()
+    tasks.add_task(_walk_later, walk.id)
+
+
+def _walkthrough(session: Session, walkthrough_id: uuid.UUID) -> Walkthrough:
+    found = session.get(Walkthrough, walkthrough_id)
+    if found is None:
+        raise HTTPException(status_code=404, detail="No such walk through your notes.")
+    return found
+
+
+class WalkIn(BaseModel):
+    session_id: str = Field(description="The interview whose notes to go through.")
+
+
+@router.post("/candidates/{candidate_id}/walkthroughs")
+def start_walkthrough(
+    candidate_id: str, body: WalkIn, session: SessionDep, tasks: BackgroundTasks
+) -> dict:
+    """ "Go through my notes with me." Opens the walk already made for this
+    interview and mentor, or starts writing one — which takes minutes."""
+    with _starting:
+        walk = walks.start(session, candidate_id, body.session_id)
+        _write_walk(session, walk, tasks)
+        session.refresh(walk)
+    return walks.view(walk)
+
+
+@router.get("/walkthroughs/{walkthrough_id}")
+def get_walkthrough(walkthrough_id: uuid.UUID, session: SessionDep, tasks: BackgroundTasks) -> dict:
+    walk = _walkthrough(session, walkthrough_id)
+    with _starting:
+        _write_walk(session, walk, tasks)
+    return walks.view(walk)
+
+
+@router.post("/walkthroughs/{walkthrough_id}/progress")
+def walkthrough_progress(walkthrough_id: uuid.UUID, body: ProgressIn, session: SessionDep) -> dict:
+    walk = _walkthrough(session, walkthrough_id)
+    keys = [c["key"] for c in (walk.script or {}).get("chapters", [])]
+    if body.reached not in keys:
+        raise HTTPException(status_code=422, detail="No such chapter.")
+    if walk.reached not in keys or keys.index(body.reached) > keys.index(walk.reached):
+        walk.reached = body.reached
+    if body.finished and walk.watched_at is None:
+        walk.watched_at = utcnow()
+    session.add(walk)
+    session.commit()
+    session.refresh(walk)
+    return walks.view(walk)

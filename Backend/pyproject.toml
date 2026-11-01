@@ -41,8 +41,9 @@ select = ["E", "F", "I", "B", "UP"]
 "**/access.py" = ["B008"]
 # Fixtures are data: a report reads best as it came.
 "**/tests/*.py" = ["E501"]
-# The model prompt: prose a model reads, wrapped where a sentence ends.
+# The model prompts: prose a model reads, wrapped where a sentence ends.
 "**/script.py" = ["E501"]
+"**/walk_script.py" = ["E501"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

@@ -6,10 +6,12 @@ import { Route } from "react-router-dom";
 
 import { CounselHome } from "./components/CounselHome";
 import { EpisodePlayer } from "./components/EpisodePlayer";
+import { NotesWalkthrough } from "./components/NotesWalkthrough";
 
 export const m16Routes = (
   <Route key="m16">
     <Route path="/counsel" element={<CounselHome />} />
+    <Route path="/counsel/notes/:sessionId" element={<NotesWalkthrough />} />
     <Route path="/counsel/:episodeId" element={<EpisodePlayer />} />
   </Route>
 );

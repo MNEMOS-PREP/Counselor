@@ -1,8 +1,8 @@
 /**
- * Who would you like to talk to? — asked once, before the first talk.
+ * Who would you like as your mentor? — asked once, before the first talk.
  *
- * Four people, each a face (AI-generated, labelled so) and a voice. "Hear"
- * plays a line in their own voice, because a counselor is chosen by how they
+ * Four mentors, each a face (AI-generated, labelled so) and a voice. "Hear"
+ * plays a line in their own voice, because a mentor is chosen by how they
  * sound as much as by how they look. The choice changes the manner of every
  * talk; it never changes the facts in one.
  */
@@ -38,9 +38,9 @@ export function CounselorPicker({
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-10">
       <p className="text-sm font-medium uppercase tracking-wider text-brand">Before your first talk</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink">Who would you like to talk to?</h1>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink">Who would you like as your mentor?</h1>
       <p className="mt-2 max-w-2xl text-ink-soft">
-        After your interviews, one person goes through how it went, what to work on, and what to do next. Pick the
+        After your interviews, one mentor goes through how it went, what to work on, and what to do next. Pick the
         one you'd listen to. You can change them any time.
       </p>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -58,9 +58,8 @@ export function CounselorPicker({
                 <span className="absolute right-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">AI</span>
               </button>
               <div className="flex flex-1 flex-col p-4">
-                <p className="font-semibold text-ink">
-                  {p.name} <span className="font-normal text-ink-soft">· {p.relation}</span>
-                </p>
+                <p className="font-semibold text-ink">{p.name}</p>
+                <p className="text-xs font-medium text-ink-soft">Mentor · {p.role}</p>
                 <p className="mt-1 flex-1 text-sm text-ink-soft">{p.blurb}</p>
                 <div className="mt-3 flex gap-2">
                   <button

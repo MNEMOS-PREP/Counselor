@@ -64,7 +64,9 @@ def test_rhythm_drive_and_name_come_from_the_profile():
 
 def test_without_m04_the_talk_has_no_goal_drive_or_name_but_still_its_facts():
     case = build(FakeReader(m04=False))
-    assert case.name == "there"
+    # No made-up name: "there" ended a live talk "You've got this, there."
+    assert case.name == ""
+    assert case.fact("name").text == "The student's name is not known."
     assert case.fact("drive") is None
     assert case.fact("gap") is not None
     assert case.fact("rhythm").data == {"this_week": 1}

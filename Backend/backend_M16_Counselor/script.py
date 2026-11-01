@@ -34,7 +34,7 @@ import re
 from typing import Any
 
 from .casefile import CaseFile
-from .counselors import Counselor
+from .counselors import Counselor, address, named
 from .llm import JOB_SCRIPT, LLM
 
 CHAPTERS: tuple[tuple[str, str], ...] = (
@@ -97,7 +97,7 @@ SCHEMA: dict[str, Any] = {
     },
 }
 
-SYSTEM = """You are {name}, talking to {student} the way their {relation} would, after an interview practice. You are an AI counselor with a generated face; you never claim to be a real person and you never invent things that happened to you.
+SYSTEM = """You are {name}, talking to {student} the way their {relation} would, after an interview practice. You are an AI mentor with a generated face; you never claim to be a real person and you never invent things that happened to you.
 
 How {name} talks: {manner}
 
@@ -115,7 +115,7 @@ Rules — a line that breaks one is deleted:
 2. Every number you say must appear in what you cite. Never invent a count, a date, a score or a percentage. There are no scores to give.
 3. No empty praise ("great job", "amazing", "keep it up"), no cruelty ("you're not ready"), no comparing them with other students, no guilt.
 4. Spoken English: short sentences, plain words, at most two sentences and about 30 words a line. No lists, no symbols, no emoji, no markdown.
-5. Call the student {student}. Talk to them ("you"), not about them.
+5. {address} Talk to them ("you"), not about them.
 Total: 9 to 14 lines."""
 
 
@@ -131,12 +131,13 @@ def write(
         name=counselor.name,
         relation=counselor.relation,
         manner=counselor.manner,
-        student=case.name,
+        student=case.name or "the student",
+        address=address(case.name),
         ask=ask["text"],
     )
     user = json.dumps(
         {
-            "student": case.name,
+            "student": case.name or None,
             "facts": [{"id": f.id, "kind": f.kind, "text": f.text} for f in case.facts],
             "plan": [{"id": s["id"], "step": s["title"], "minutes": s["minutes"]} for s in steps],
             "ask": ask["text"],
@@ -174,7 +175,7 @@ def held_to(
             raw_text = str(line.get("text") or "").translate(SPOKEN)
             text = re.sub(r"\s+", " ", raw_text).replace(" ,", ",").strip()
             cites = [str(c) for c in line.get("cites") or []]
-            if _breaks_rules(text, cites, sources):
+            if breaks_rules(text, cites, sources):
                 dropped += 1
                 continue
             by_key[key].append({"text": text, "cites": cites})
@@ -190,7 +191,9 @@ def held_to(
     return {"chapters": chapters}, kept, dropped
 
 
-def _breaks_rules(text: str, cites: list[str], sources: dict[str, str]) -> bool:
+def breaks_rules(text: str, cites: list[str], sources: dict[str, str]) -> bool:
+    """Rules 1–4 above, for one line. The walk through the notes holds its
+    lines to the same ones (walk_script.py)."""
     if not text or len(text) > MAX_LINE or not cites:
         return True
     if any(c not in sources for c in cites):
@@ -223,7 +226,7 @@ def template_script(case: CaseFile, counselor: Counselor, steps: list[dict], ask
     f = case.fact
     name = case.name
     lines: dict[str, list[tuple[str, list[str]]]] = {key: [] for key in KEYS}
-    lines["hello"].append((counselor.greet.format(name=name), [f("name").id]))
+    lines["hello"].append((named(counselor.greet, name), [f("name").id]))
     best = f("best")
     if best and best.data.get("quote"):
         lines["hello"].append(
@@ -285,7 +288,7 @@ def template_script(case: CaseFile, counselor: Counselor, steps: list[dict], ask
         lines["plan"].append(("Pick one topic and do one more interview on it.", [f("name").id]))
 
     lines["ask"].append((f"So, can you do {ask['text']}?", ["ask"]))
-    lines["bye"].append((counselor.signoff.format(name=name), [f("name").id]))
+    lines["bye"].append((named(counselor.signoff, name), [f("name").id]))
 
     return {
         "chapters": [

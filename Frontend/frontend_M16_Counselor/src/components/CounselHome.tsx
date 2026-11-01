@@ -34,7 +34,7 @@ export function CounselHome() {
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-6">
       <PageHeader
-        eyebrow="Your counselor"
+        eyebrow="Your mentor"
         title={me ? `Talks with ${me.name}` : "Your talks"}
         subtitle="A short talk after your interviews: what went well, what didn't, and what to do next."
       />
@@ -83,7 +83,7 @@ export function CounselHome() {
 
         <aside className="space-y-5 rounded-2xl border border-line bg-surface-raised p-5">
           <div>
-            <h2 className="text-sm font-semibold text-ink">Who talks to you</h2>
+            <h2 className="text-sm font-semibold text-ink">Your mentor</h2>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {counselors.data?.map((c) => (
                 <button
@@ -92,13 +92,13 @@ export function CounselHome() {
                   onClick={() => save.mutate({ counselor_id: c.id })}
                   aria-pressed={c.id === s?.counselor_id}
                   className={`overflow-hidden rounded-xl border text-center ${c.id === s?.counselor_id ? "border-brand ring-2 ring-brand/30" : "border-line"}`}
-                  title={`${c.name}, ${c.relation}`}
+                  title={`${c.name}, ${c.role}`}
                 >
                   <div className="relative aspect-[4/3] bg-neutral-900">
                     <InterviewerPhoto persona={c.id} name={c.name} fill />
                   </div>
                   <p className="px-2 pt-1.5 text-sm font-medium text-ink">{c.name}</p>
-                  <p className="px-2 pb-1.5 text-xs text-ink-soft">{c.relation}</p>
+                  <p className="px-2 pb-1.5 text-xs text-ink-soft">{c.role}</p>
                 </button>
               ))}
             </div>

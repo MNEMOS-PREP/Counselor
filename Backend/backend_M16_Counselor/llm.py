@@ -1,7 +1,9 @@
-"""The model client: one job — the words of a talk.
+"""The model client: two jobs — the words of a talk, and of a walk.
 
     script   a case file (facts decided by code) -> a counselor's lines, each
              citing the facts it stands on
+    walk     one chapter of a walk through the notes (one question's facts)
+             -> the same, for that chapter
 
 The facts are never the model's (spec §6.2: the diagnosis is computed, not
 generated); the model only says them in the counselor's voice, and every line
@@ -37,6 +39,7 @@ from .keys import KeyRing, load_keys
 log = logging.getLogger("uvicorn.error")
 
 JOB_SCRIPT = "counsel_script"
+JOB_WALK = "counsel_walk"
 
 
 @dataclass(frozen=True)
@@ -60,6 +63,17 @@ JOBS: dict[str, JobSpec] = {
         max_tokens=4000,
         timeout_s=float(os.getenv("M16_SCRIPT_TIMEOUT", "60")),
         temperature=0.6,
+    ),
+    # One call per chapter of a walk, one after another, on the student's
+    # asking — they wait for it and said they don't mind (2026-10-31), so a
+    # chapter can have the time a careful explanation takes. Cooler than the
+    # talk: this one explains an idea, and must not drift from it.
+    JOB_WALK: JobSpec(
+        tier="generation",
+        env="M16_MODEL_WALK",
+        max_tokens=2500,
+        timeout_s=float(os.getenv("M16_WALK_TIMEOUT", "60")),
+        temperature=0.4,
     ),
 }
 

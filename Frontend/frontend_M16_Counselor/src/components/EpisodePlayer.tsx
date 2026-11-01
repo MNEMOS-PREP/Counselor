@@ -13,29 +13,24 @@
  * buttons answer, the counselor says something back, and then signs off.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import {
-  Icon,
-  InterviewerPhoto,
-  Spinner,
-  TalkingHead,
-  candidateIdOf,
-  prepareLines,
-  useInterviewerVoice,
-  useSession,
-} from "@ai/core";
+import { Icon, Spinner, candidateIdOf, prepareLines, useInterviewerVoice, useSession } from "@ai/core";
 
 import { useAnswer, useEpisode, useProgress, useSaveSettings, useSettings } from "../api";
 import type { AskOption, Chapter, ChapterKey, Episode, Mode } from "../types";
 import { CounselorPicker } from "./CounselorPicker";
+import { useNarration } from "./narration";
+import { Centre, Control, Frame, Overlay, PauseGlyph, PlayGlyph, Preparing, Stage, Subtitle, clock } from "./stage";
 
 type Phase = "cover" | "playing" | "paused" | "asking" | "replying" | "done";
 
-const PAUSE_AFTER_MS = 450;
-/** The longest a chapter waits for a sentence still being made before it moves on. */
-const GRACE_MS = 20_000;
+const BACK = { to: "/counsel", label: "Back to your talks" };
+
+function dated(ep: Episode): string {
+  return new Date(ep.created_at).toLocaleDateString(undefined, { day: "numeric", month: "long" });
+}
 
 export function EpisodePlayer() {
   const { episodeId } = useParams();
@@ -59,13 +54,8 @@ export function EpisodePlayer() {
   }
   if (ep.status === "writing") {
     return (
-      <Frame ep={ep}>
-        <Stage ep={ep} speaking={false} expression={() => null} mode="audio">
-          <Overlay>
-            <Spinner label={`${ep.counselor.name} is going through your interview`} />
-            <p className="mt-3 text-sm text-white/70">Usually under half a minute.</p>
-          </Overlay>
-        </Stage>
+      <Frame counselor={ep.counselor} back={BACK} subtitle={dated(ep)}>
+        <Preparing counselor={ep.counselor} note="Usually under half a minute." />
       </Frame>
     );
   }
@@ -95,17 +85,8 @@ function Player({ ep, mode: initialMode, candidateId }: { ep: Episode; mode: Mod
   const options = "options" in ep.ask ? ep.ask.options : [];
   const answered = options.find((o) => o.id === ep.answer) ?? null;
 
-  const parts = useCallback(
-    (lines: { id: string; text: string }[]) =>
-      lines.map((l) => ({
-        text: l.text,
-        personaId: ep.counselor.id,
-        voiceId: ep.counselor.voice_id,
-        id: l.id,
-        pauseAfterMs: PAUSE_AFTER_MS,
-      })),
-    [ep.counselor.id, ep.counselor.voice_id],
-  );
+  const narration = useNarration({ voice, speaker: ep.counselor, silent: mode === "text" });
+  const { say, parts } = narration;
 
   // Have M11 make every line while the cover is up, so nothing waits later.
   useEffect(() => {
@@ -124,41 +105,6 @@ function Player({ ep, mode: initialMode, candidateId }: { ep: Episode; mode: Mod
   stopVoice.current = voice.stop;
   useEffect(() => () => stopVoice.current("leave"), []);
 
-  // ── what is being said, and when it ends ────────────────────────────────────
-  const saying = useRef<string | null>(null);
-  const heard = useRef(false);
-  // The voice goes quiet between two sentences of one line when the next is
-  // still being made (its `speakingKey` clears whenever the track runs dry).
-  // So a chapter is over only when its LAST line has been heard and the voice
-  // is then quiet; a gap before that is waited out, for at most GRACE_MS.
-  const lastPart = useRef<string | null>(null);
-  const lastHeard = useRef(false);
-  const grace = useRef<number | null>(null);
-  const fallbackTimer = useRef<number | null>(null);
-  // `finished` reads the chapter being played, so timers and the voice's
-  // effect call the latest one, never the one from when they were set.
-  const onFinished = useRef<(key: string) => void>(() => undefined);
-
-  const say = useCallback(
-    (key: string, lines: { id: string; text: string }[]) => {
-      saying.current = key;
-      heard.current = false;
-      lastPart.current = lines[lines.length - 1]?.id ?? null;
-      lastHeard.current = false;
-      if (grace.current) window.clearTimeout(grace.current);
-      if (fallbackTimer.current) window.clearTimeout(fallbackTimer.current);
-      if (mode !== "text" && voice.enabled && voice.supported) {
-        voice.speak(parts(lines), key);
-      } else {
-        // No voice: give the words their reading time, then move on.
-        const words = lines.reduce((n, l) => n + l.text.split(/\s+/).length, 0);
-        fallbackTimer.current = window.setTimeout(() => onFinished.current(key), Math.max(2500, words * 330));
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mode, voice.enabled, voice.supported, parts],
-  );
-
   const playChapter = useCallback(
     (index: number) => {
       const c = chapters[index];
@@ -173,8 +119,6 @@ function Player({ ep, mode: initialMode, candidateId }: { ep: Episode; mode: Mod
 
   const finished = useCallback(
     (key: string) => {
-      if (saying.current !== key) return;
-      saying.current = null;
       if (key.includes(":reply:")) {
         playChapter(at + 1);
         return;
@@ -195,38 +139,11 @@ function Player({ ep, mode: initialMode, candidateId }: { ep: Episode; mode: Mod
     [at, chapters, options.length, answered, playChapter],
   );
 
-  onFinished.current = finished;
-
-  // The voice says what is being heard (speakingKey, speakingPart) and when
-  // it has gone quiet; the chapter ends after its last line, not at a gap.
-  useEffect(() => {
-    const key = saying.current;
-    if (!key) return;
-    if (voice.speakingPart && voice.speakingPart === lastPart.current) lastHeard.current = true;
-    if (voice.speakingKey === key) {
-      heard.current = true;
-      if (grace.current) window.clearTimeout(grace.current);
-      grace.current = null;
-      return;
-    }
-    if (heard.current && voice.speakingKey === null) {
-      if (lastHeard.current) onFinished.current(key);
-      else if (!grace.current) {
-        // A sentence still being made: wait for it, but never for ever.
-        grace.current = window.setTimeout(() => {
-          grace.current = null;
-          onFinished.current(key);
-        }, GRACE_MS);
-      }
-    }
-  }, [voice.speakingKey, voice.speakingPart]);
+  narration.onFinished.current = finished;
 
   const pause = () => {
-    saying.current = null; // a stop is not an ending: the next chapter must not start
+    narration.halt();
     voice.stop("pause");
-    if (fallbackTimer.current) window.clearTimeout(fallbackTimer.current);
-    if (grace.current) window.clearTimeout(grace.current);
-    grace.current = null;
     setPhase("paused");
   };
 
@@ -250,14 +167,19 @@ function Player({ ep, mode: initialMode, candidateId }: { ep: Episode; mode: Mod
     }
   };
 
+  // Between two lines the voice is quiet while the next is still being made:
+  // the last line heard in this chapter stays up, rather than the subtitle
+  // jumping back to the chapter's first line in every gap.
+  const heard = chapter?.lines.find((l) => l.id === voice.speakingPart) ?? null;
+  const lastHeard = useRef<{ key: string; text: string } | null>(null);
+  if (heard && chapter) lastHeard.current = { key: chapter.key, text: heard.text };
   const speakingLine = useMemo(() => {
     if (reply) return reply.reply;
-    const all = chapters.flatMap((c) => c.lines);
-    const now = all.find((l) => l.id === voice.speakingPart);
-    return now?.text ?? (phase === "playing" || phase === "paused" ? chapter?.lines[0]?.text : null) ?? null;
-  }, [voice.speakingPart, chapters, chapter, phase, reply]);
+    const held = lastHeard.current?.key === chapter?.key ? lastHeard.current?.text : null;
+    return heard?.text ?? held ?? (phase === "playing" || phase === "paused" ? chapter?.lines[0]?.text : null) ?? null;
+  }, [heard, chapter, phase, reply]);
 
-  const minutes = `${Math.floor(ep.seconds / 60)}:${String(ep.seconds % 60).padStart(2, "0")}`;
+  const minutes = clock(ep.seconds);
   const speaking = voice.speakingKey !== null;
   const planIndex = chapters.findIndex((c) => c.key === "plan");
   const askIndex = chapters.findIndex((c) => c.key === "ask");
@@ -267,10 +189,10 @@ function Player({ ep, mode: initialMode, candidateId }: { ep: Episode; mode: Mod
     (ep.reached !== null && askIndex >= 0 && chapters.findIndex((c) => c.key === ep.reached) >= askIndex);
 
   return (
-    <Frame ep={ep} mode={mode} onMode={switchMode}>
+    <Frame counselor={ep.counselor} back={BACK} subtitle={dated(ep)} mode={mode} onMode={switchMode}>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0">
-          <Stage ep={ep} speaking={speaking} expression={voice.expression} mode={mode} listening={phase === "asking"}>
+          <Stage counselor={ep.counselor} speaking={speaking} expression={voice.expression} mode={mode} listening={phase === "asking"}>
             {phase === "cover" && (
               <Overlay>
                 <p className="text-sm uppercase tracking-wider text-white/60">About your last {ep.sessions.length > 1 ? `${ep.sessions.length} interviews` : "interview"}</p>
@@ -288,18 +210,22 @@ function Player({ ep, mode: initialMode, candidateId }: { ep: Episode; mode: Mod
                 )}
               </Overlay>
             )}
-            {phase !== "cover" && speakingLine && mode !== "text" && (
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-8 pb-6 pt-16">
-                <p className="mx-auto max-w-3xl text-center text-xl leading-snug text-white [text-wrap:balance]" aria-live="polite">
-                  {speakingLine}
-                </p>
-              </div>
-            )}
+            {phase !== "cover" && speakingLine && mode !== "text" && <Subtitle text={speakingLine} />}
             {phase === "done" && (
               <Overlay>
                 <p className="text-2xl font-semibold text-white">That's the talk.</p>
                 <p className="mt-2 text-white/70">Your plan is on the right. Start with the first one.</p>
-                <button type="button" onClick={() => playChapter(0)} className="mt-5 text-sm text-white/80 underline">
+                {ep.sessions[0] && (
+                  // The talk names the one thing; the walk goes through each
+                  // question that needs work, with the notes beside it.
+                  <Link
+                    to={`/counsel/notes/${ep.sessions[0]}`}
+                    className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black shadow-lg transition hover:scale-[1.02]"
+                  >
+                    Go through your notes with {ep.counselor.name}
+                  </Link>
+                )}
+                <button type="button" onClick={() => playChapter(0)} className="mt-4 text-sm text-white/80 underline">
                   Watch again
                 </button>
               </Overlay>
@@ -368,7 +294,7 @@ function Player({ ep, mode: initialMode, candidateId }: { ep: Episode; mode: Mod
             </section>
           )}
           <p className="text-xs leading-relaxed text-ink-faint">
-            {ep.counselor.name} is an AI counselor with a generated face. Every sentence in this talk comes from your
+            {ep.counselor.name} is an AI mentor with a generated face. Every sentence in this talk comes from your
             own interview notes and your goals{ep.source === "template" ? ", in plain words" : ""}.
           </p>
         </aside>
@@ -378,92 +304,6 @@ function Player({ ep, mode: initialMode, candidateId }: { ep: Episode; mode: Mod
 }
 
 // ── pieces ────────────────────────────────────────────────────────────────────
-
-function Frame({ ep, mode, onMode, children }: { ep: Episode; mode?: Mode; onMode?: (m: Mode) => void; children: ReactNode }) {
-  return (
-    <div className="mx-auto w-full max-w-6xl px-6 py-6">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Link to="/counsel" className="rounded-lg p-1.5 text-ink-soft hover:bg-surface-sunken" aria-label="Back to your talks">
-            <Icon name="arrowLeft" size={18} />
-          </Link>
-          <div>
-            <h1 className="text-lg font-semibold text-ink">
-              {ep.counselor.name} <span className="font-normal text-ink-soft">· your {ep.counselor.relation}</span>
-            </h1>
-            <p className="text-xs text-ink-faint">{new Date(ep.created_at).toLocaleDateString(undefined, { day: "numeric", month: "long" })}</p>
-          </div>
-        </div>
-        {mode && onMode && (
-          <div className="flex rounded-xl border border-line bg-surface p-0.5 text-sm" role="group" aria-label="How to have the talk">
-            {(["video", "audio", "text"] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => onMode(m)}
-                aria-pressed={mode === m}
-                className={`rounded-lg px-3 py-1 capitalize ${mode === m ? "bg-surface-raised font-medium text-ink shadow-sm" : "text-ink-soft"}`}
-              >
-                {m === "text" ? "Read" : m === "audio" ? "Listen" : "Watch"}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function Stage({
-  ep,
-  speaking,
-  expression,
-  mode,
-  listening = false,
-  children,
-}: {
-  ep: Episode;
-  speaking: boolean;
-  expression: () => Record<string, number> | null;
-  mode: Mode;
-  listening?: boolean;
-  children?: ReactNode;
-}) {
-  const photo = <InterviewerPhoto persona={ep.counselor.id} name={ep.counselor.name} fill backdrop />;
-  return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-neutral-950 shadow-xl ring-1 ring-black/20">
-      {mode === "video" ? (
-        <TalkingHead
-          persona={ep.counselor.id}
-          name={ep.counselor.name}
-          speaking={speaking}
-          expression={expression}
-          listening={listening}
-          fallback={photo}
-          className="absolute inset-0 h-full w-full"
-        />
-      ) : mode === "audio" ? (
-        <div className="absolute inset-0 grid place-items-center">
-          <div className={`h-40 w-40 overflow-hidden rounded-full ring-4 transition ${speaking ? "ring-brand" : "ring-white/10"}`}>
-            {photo}
-          </div>
-        </div>
-      ) : (
-        <div className="absolute inset-0 opacity-40">{photo}</div>
-      )}
-      {children}
-    </div>
-  );
-}
-
-function Overlay({ children }: { children: ReactNode }) {
-  return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/55 px-6 text-center backdrop-blur-[2px]">
-      {children}
-    </div>
-  );
-}
 
 function ChapterRail({ chapters, at, phase, onJump }: { chapters: Chapter[]; at: number; phase: Phase; onJump: (i: number) => void }) {
   return (
@@ -522,40 +362,6 @@ function Transcript({ chapters, at }: { chapters: Chapter[]; at: number }) {
         </section>
       ))}
     </div>
-  );
-}
-
-function Control({ onClick, label, children }: { onClick: () => void; label: string; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink hover:bg-surface-sunken"
-    >
-      {children}
-    </button>
-  );
-}
-
-function Centre({ children }: { children: ReactNode }) {
-  return <div className="flex min-h-[60vh] flex-col items-center justify-center">{children}</div>;
-}
-
-function PlayGlyph() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-      <path d="M3 1.8v10.4a.6.6 0 0 0 .9.5l8.6-5.2a.6.6 0 0 0 0-1L3.9 1.3a.6.6 0 0 0-.9.5Z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function PauseGlyph() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-      <rect x="2.5" y="1.5" width="3.2" height="11" rx="0.8" fill="currentColor" />
-      <rect x="8.3" y="1.5" width="3.2" height="11" rx="0.8" fill="currentColor" />
-    </svg>
   );
 }
 

@@ -176,6 +176,7 @@ def view(episode: Episode) -> dict[str, Any]:
             "id": counselor.id,
             "name": counselor.name,
             "relation": counselor.relation,
+            "role": counselor.role,
             "voice_id": counselor.voice_id,
         },
         "sessions": episode.sessions,

@@ -18,3 +18,8 @@ COUNSELORS_FILE = Path(__file__).with_name("counselors.json")
 UPSTREAM_TIMEOUT_S = float(os.getenv("M16_UPSTREAM_TIMEOUT", "8"))
 #: The most interviews one talk covers, and the choices a student has.
 EVERY_CHOICES = (1, 2, 3)
+#: A walk through the notes waits for the notes' explanations to be written
+#: (M06 writes them after the interview), checking this often, for at most
+#: this long — then goes through what is there and says so.
+WRITEUPS_POLL_S = float(os.getenv("M16_WRITEUPS_POLL", "5"))
+WRITEUPS_WAIT_S = float(os.getenv("M16_WRITEUPS_WAIT", "240"))
