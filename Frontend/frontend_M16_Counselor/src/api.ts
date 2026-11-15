@@ -56,9 +56,20 @@ export function useSaveSettings(candidateId: string | null) {
 /** A talk to watch, or how many interviews until the next one. Makes the
  *  talk when it is due, so call it where a student lands after interviews. */
 export function useCheck(candidateId: string | null, enabled = true) {
+  const qc = useQueryClient();
   return useQuery({
     queryKey: m16Keys.check(candidateId ?? ""),
-    queryFn: () => api.post<Check>(`${C}/candidates/${candidateId}/check`),
+    queryFn: async () => {
+      const got = await api.post<Check>(`${C}/candidates/${candidateId}/check`);
+      // The check can make a talk (or finish writing one): a list of talks
+      // fetched before it would not show it, so it is fetched again.
+      const listed = qc.getQueryData<Episode[]>(m16Keys.episodes(candidateId ?? ""));
+      const talk = got.episode;
+      if (talk && listed && !listed.some((e) => e.id === talk.id && e.status === talk.status)) {
+        void qc.invalidateQueries({ queryKey: m16Keys.episodes(candidateId ?? "") });
+      }
+      return got;
+    },
     enabled: !!candidateId && enabled,
     refetchInterval: (query) => (query.state.data?.episode?.status === "writing" ? 2500 : false),
     refetchOnWindowFocus: true,

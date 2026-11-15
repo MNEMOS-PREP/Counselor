@@ -5,7 +5,11 @@ student's choice, 1 unless they say. The interviews counted are the ones that
 ended after the last talk was made (or all of them, before the first), so a
 student back after a week with three interviews gets ONE talk about the three,
 not three talks. A talk that is ready and not yet heard is the one shown; no
-second is made on top of it.
+second is made on top of it — until N more interviews have ended since it was
+made. Then it is stale, and ONE new talk covers its interviews and the new
+ones; the old one stays in the list as far as it was heard. (Before
+2026-11-15 an unfinished talk was shown for good, so every interview after it
+went without one.)
 
 **Writing.** Made in the background the moment it is due — while the student
 reads their notes — so by the time they press play it is there: the facts
@@ -73,13 +77,24 @@ def check(db: Session, reader: Reader, candidate_id: str) -> dict[str, Any]:
     interviews until the next one. Makes the talk when it is due."""
     settings = settings_for(db, candidate_id)
     shown = waiting(db, candidate_id)
-    if shown is not None:
-        return {"due": True, "episode": shown, "until_next": 0, "reason": None}
-    if settings.paused:
+    keep = {"due": True, "episode": shown, "until_next": 0, "reason": None}
+    if shown is not None and (settings.paused or shown.status == "writing"):
+        return keep
+    if shown is None and settings.paused:
         return {"due": False, "episode": None, "until_next": None, "reason": "paused"}
     history = reader.interviews(candidate_id)
     if history is None:
+        if shown is not None:
+            return keep
         return {"due": False, "episode": None, "until_next": None, "reason": "M06 is not answering"}
+    if shown is not None:
+        # The talk left unheard is shown until `every` more interviews have
+        # ended since it was made; then one new talk covers both lots.
+        newer = new_interviews(history, shown.created_at)
+        if len(newer) < settings.every:
+            return keep
+        ids = [str(h["id"]) for h in newer]
+        return _made(db, candidate_id, settings, ids + [s for s in shown.sessions if s not in ids])
     # Counted from the last talk that was made; a failed one gave nothing, so
     # its interviews are still owed one.
     last = db.exec(
@@ -95,10 +110,17 @@ def check(db: Session, reader: Reader, candidate_id: str) -> dict[str, Any]:
             "until_next": settings.every - len(fresh),
             "reason": None,
         }
+    return _made(db, candidate_id, settings, [str(h["id"]) for h in fresh])
+
+
+def _made(
+    db: Session, candidate_id: str, settings: CounselSettings, sessions: list[str]
+) -> dict[str, Any]:
+    """A new talk about these interviews (newest first), to be written next."""
     episode = Episode(
         candidate_id=candidate_id,
         counselor_id=counselors.get(settings.counselor_id).id,
-        sessions=[str(h["id"]) for h in fresh],
+        sessions=sessions,
     )
     db.add(episode)
     db.commit()

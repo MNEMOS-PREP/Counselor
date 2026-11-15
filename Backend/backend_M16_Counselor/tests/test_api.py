@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from ai_core.testing import assert_refuses_strangers
@@ -77,6 +77,27 @@ def test_every_two_waits_for_a_second_interview(client):
     )
     got = client.post(f"/v1/counsel/candidates/{RIYA}/check", headers=student(RIYA)).json()
     assert got["due"] is True and set(got["episode"]["sessions"]) == {SESSION, "second"}
+
+
+def test_a_talk_left_unheard_gives_way_once_more_interviews_end(client):
+    """An unfinished talk must not hide the interviews after it (2026-11-15: a
+    7 Nov talk left half-heard kept every later interview from getting one)."""
+    sam = "5a3e0000-0000-4000-8000-000000000016"
+    first = client.post(f"/v1/counsel/candidates/{sam}/check", headers=student(sam)).json()
+    old = first["episode"]
+    # One more interview ends after that talk was made (every = 1).
+    router_module.set_reader(
+        FakeReader(
+            [interview(SESSION, NOW - timedelta(minutes=30)), interview("later", datetime.now(UTC))]
+        )
+    )
+    got = client.post(f"/v1/counsel/candidates/{sam}/check", headers=student(sam)).json()
+    assert got["due"] is True and got["episode"]["id"] != old["id"]
+    assert got["episode"]["sessions"] == ["later", SESSION]  # newest first, both lots
+    talks = client.get(f"/v1/counsel/candidates/{sam}/episodes", headers=student(sam)).json()
+    assert [t["id"] for t in talks] == [got["episode"]["id"], old["id"]]  # the old one stays
+    again = client.post(f"/v1/counsel/candidates/{sam}/check", headers=student(sam)).json()
+    assert again["episode"]["id"] == got["episode"]["id"]  # and the new one is not remade
 
 
 def test_settings_refuse_what_is_not_on_offer(client):
