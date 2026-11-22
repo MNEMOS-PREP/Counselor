@@ -175,6 +175,10 @@ def test_a_good_model_walk_is_kept_and_says_where_each_line_points():
     assert (source, reason, templated) == ("model", None, [])
     assert llm.calls == ["Before we start", "Question 2", "To finish"]  # one at a time, in order
     q2 = script["chapters"][1]["lines"]
+    # What was asked is the question's own words, said by code; the model's
+    # retelling of it ("was about why a hash map lookup is fast") is not kept.
+    assert q2[0]["text"].startswith("Question 2")
+    assert all("was about why" not in line["text"] for line in q2)
     assert q2[1]["text"] == 'You said "Honestly I\'m not sure about the assumptions."'
 
 
@@ -384,3 +388,28 @@ def test_a_line_on_what_was_missing_points_at_what_was_missing(client):
     for line in got["chapters"][1]["lines"]:
         if line["text"].startswith("Where it fell short"):
             assert line["points_at"] == "missed"
+
+
+# ── 15 Nov's walk, fixed (good_and_bads #20, 2026-11-22) ──────────────────
+
+
+def test_a_misheard_word_is_never_quoted_as_theirs():
+    # M06 carries the recogniser's unsure ranges on each spoken answer; the walk
+    # quotes the rest and shows an ellipsis where it was not sure.
+    assert notes.heard("I'd say Uho of one on average", [[8, 18]]) == "I'd say … on average"
+    assert notes.heard("all heard", []) == "all heard"
+    report = copy.deepcopy(REPORT)
+    hashing = report["questions"][1]
+    first = next(e for e in hashing["exchanges"] if e["role"] == "candidate")
+    first["unsure"] = [[0, len(first["text"].split()[0])]]
+    built = walk(report)
+    said = built.of(chapter(built, "q2"), "said")
+    assert said and first["text"].split()[0] not in said[0].text.split()[:3]
+
+
+def test_the_one_to_work_on_first_is_named_by_its_question():
+    built = walk()
+    focus = built.of(chapter(built, "close"), "focus")[0]
+    assert focus.text.startswith("The one to work on first: question 2")
+    assert focus.data["number"] == 2
+    assert built.cards["close"]["focus"].startswith("Question 2")
