@@ -81,13 +81,12 @@ Rules — a line that breaks one is deleted:
 
 PART = {
     "intro": """This is the opening, before the first question. Write 2 or 3 lines: hello; that you have been through their notes; how it went overall; which questions held up (only name them, you will not go through those); and which you will go through now.""",
-    "work": """This is question {index}, one {student} underperformed on. Write 4 to 7 lines, in this order:
-1. What was asked, in a phrase. Do not read the whole question out.
-2. If part of the answer was right, say so in one line, quoting them.
-3. What they said that fell short, quoted, and what was missing or wrong in it. Honest and specific, never harsh.
-4. The idea behind the right answer, explained simply, the way you would explain it across a table: what it is and why it matters. Your own words, but only what the facts say. Take two lines if it needs them.
-5. One line on what to practise, if a fact gives it.""",
-    "held": """This is question {index}. It held up, but could be stronger. Write 2 or 3 lines: what was asked, in a phrase; what they got right, quoting them if a fact has their words; and what would make it even stronger.""",
+    "work": """This is question {index}, one {student} underperformed on. The question has just been introduced, in its own words, in a line already written: never say again what was asked, never describe or paraphrase the question. Write 3 to 6 lines, in this order:
+1. If part of the answer was right, say so in one line, quoting them.
+2. What they said that fell short, quoted, and what was missing or wrong in it. Honest and specific, never harsh.
+3. The idea behind the right answer, explained simply, the way you would explain it across a table: what it is and why it matters. Your own words, but only what the facts say. Take two lines if it needs them.
+4. One line on what to practise, if a fact gives it.""",
+    "held": """This is question {index}. It held up, but could be stronger. The question has just been introduced, in its own words, in a line already written: never say again what was asked. Write 1 or 2 lines: what they got right, quoting them if a fact has their words; and what would make it even stronger.""",
     "close": """This is the end, after the last question. Write 2 or 3 lines: the one to work on first, and anything else the facts give (a mistake that came back, a correction they made, how they said it); then end with {name}'s own sign-off, in these words: "{signoff}".""",
 }
 
@@ -125,6 +124,13 @@ def write(
         if not lines:
             templated.append(chapter.key)
             lines = by_key[chapter.key]
+        elif chapter.kind in ("work", "held"):
+            # What was asked is said in the question's own words, by code: a
+            # model retelling it said a hashing question "asked about
+            # removal" (15 Nov). The template's opener is that line, and a
+            # model line that stands only on what was asked is its retelling.
+            asked = {f.id for f in walk.of(chapter, "asked")}
+            lines = [*by_key[chapter.key][:1], *(ln for ln in lines if not set(ln["cites"]) <= asked)]
         chapters.append(
             {"key": chapter.key, "title": chapter.title, "lines": _numbered(chapter.key, lines)}
         )

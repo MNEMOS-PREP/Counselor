@@ -310,9 +310,16 @@ def build(
     summary = report.get("summary") or {}
     ids = [name_fact.id, tally.id]
     first = _first_to_work_on(work)
+    first_number = next((i for i, q in asked if q is first), None)
     if first is not None:
+        # By its number as well as its topic (2026-11-22): two questions can
+        # share a topic, and a walk on 15 Nov said "Hash Function Design" held
+        # up, then that the one to work on first was Hash Function Design.
         topic = _about(first, names) or "the question you found hardest"
-        made = facts.add("focus", f"The one to work on first: {topic}.", topic=topic)
+        where = f"question {first_number}, on {topic}" if first_number else topic
+        made = facts.add(
+            "focus", f"The one to work on first: {where}.", topic=topic, number=first_number
+        )
         ids.append(made.id)
     shown: list[str] = []
     for repeated in (summary.get("repeated_misconceptions") or [])[:1]:
@@ -337,7 +344,13 @@ def build(
     chapters.append(Chapter("close", "To finish", kind="close", facts=ids))
     cards["close"] = {
         "kind": "close",
-        "focus": (_about(first, names) or "") if first is not None else "",
+        "focus": (
+            f"Question {first_number}: {_about(first, names)}"
+            if first is not None and first_number and _about(first, names)
+            else (_about(first, names) or "")
+            if first is not None
+            else ""
+        ),
         "points": [_plain(p) for p in shown],
     }
 
@@ -418,15 +431,33 @@ def _missed(q: dict[str, Any], writeup: dict[str, Any], kind: str) -> list[dict[
 
 def _first_answer(q: dict[str, Any]) -> str:
     """The student's first answer to the question as asked — a practice retry
-    is shown in the notes but is never the answer that was judged."""
+    is shown in the notes but is never the answer that was judged.
+
+    As it may be quoted (2026-11-22): the words M11's recogniser was unsure of
+    (M06 carries their ranges on each spoken answer) are an ellipsis. A walk on
+    15 Nov quoted "Uho of one", a mishearing, back to the student as theirs."""
     for exchange in q.get("exchanges") or []:
         if (
             exchange.get("role") == "candidate"
             and not exchange.get("retry")
             and exchange.get("text")
         ):
-            return str(exchange["text"])
+            return heard(str(exchange["text"]), exchange.get("unsure") or [])
     return ""
+
+
+def heard(text: str, unsure: list) -> str:
+    """`text` with every unsure range (start, end) as an ellipsis."""
+    out, at = [], 0
+    for span in sorted((int(a), int(b)) for a, b in unsure):
+        start, end = span
+        if start < at or end <= start:
+            continue
+        out.append(text[at:start])
+        out.append("\u2026")
+        at = end
+    out.append(text[at:])
+    return "".join(out)
 
 
 def _first_to_work_on(work: list[dict[str, Any]]) -> dict[str, Any] | None:

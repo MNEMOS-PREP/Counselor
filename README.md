@@ -1,6 +1,6 @@
 # M16 — Counselor
 
-> **Someone who talks to you after your report card.** An elder brother or sister, a mum or a dad — your choice — who goes through how it went, names the one thing to fix, gives you a plan, and holds you to it next time. Honest, never harsh; warm, never flattering.
+> **Someone who talks to you after your report card.** A mentor of your choice — Kabir, Tara, Sunita or Prakash, engineers and a hiring manager a few years ahead of you — who goes through how it went, names the one thing to fix, gives you a plan, and holds you to it next time. Honest, never harsh; warm, never flattering. They can also walk you through your notes, one weak answer at a time.
 >
 > Spec: [plan_in_depth/M16_Counselor.md](plan_in_depth/M16_Counselor.md) · Ports: API `8116`, web `5216` ([PORTS.txt](PORTS.txt))
 
